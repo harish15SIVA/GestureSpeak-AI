@@ -76,7 +76,7 @@ py -m pip install -r requirements.txt
 
 ## 🏗️ System Architecture
 
-```text
+
 Browser Webcam
       ↓
 Frame Capture
@@ -110,7 +110,9 @@ The repository includes a screenshot of the live GestureSpeak AI interface.
 
 ![GestureSpeak AI](Screenshot.png)
 
-### Demonstrated Workflow
+---
+
+## Demonstrated Workflow
 Webcam → Hand Detection → Gesture Recognition → Confidence → Text → Speech
 
 ## 💻 Tech Stack & Architecture
@@ -121,6 +123,8 @@ Webcam → Hand Detection → Gesture Recognition → Confidence → Text → Sp
 - **Accessibility:** Dynamic font scaling (A- to A++), High Contrast mode, screen-reader friendly ARIA markup.
 - **Privacy Guarantee:** 100% client-side local computation. No video or biometric data is stored or transmitted.
 
+---
+
 ## 🚀 Future Scope
 
 - Dataset-based accuracy evaluation
@@ -130,10 +134,14 @@ Webcam → Hand Detection → Gesture Recognition → Confidence → Text → Sp
 - Advanced voice controls
 - Improved classification using a trained ML model
 - Expanded gesture vocabulary
+
 ---
+
 ## 📊 Review-1 Progress
 
-### Completed
+---
+
+## Completed
 - Flask backend and API routes
 - Browser webcam capture
 - OpenCV frame decoding
@@ -155,6 +163,8 @@ Core recognition and communication pipeline is implemented and working as a
 prototype. Further validation, robustness testing, and additional features
 remain in progress.
 
+---
+
 ## ⚠️ Limitations
 
 - The current classifier is rule-based, not a trained ML model.
@@ -164,5 +174,6 @@ remain in progress.
   translation system.
 
 ---
+```text
 
 *GestureSpeak AI — AI Immersion C29 Engineering Project*
