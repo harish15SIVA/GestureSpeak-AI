@@ -75,6 +75,10 @@ If you wish to test with the Python backend:
 
 ---
 
+## Project Preview
+
+![GestureSpeak AI](Screenshot.png)
+
 ## 💻 Tech Stack & Architecture
 - **Frontend UI:** Modern Dark AI Theme with Cyan/Teal Accents (`#06b6d4`, `#14b8a6`, `#070b14`), Tailwind CSS, Space Grotesk + Inter fonts.
 - **Computer Vision:** MediaPipe Hands (21 3D skeleton keypoints), OpenCV (`cv2`).
