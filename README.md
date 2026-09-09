@@ -63,12 +63,55 @@ Voice Output (Web Speech API)
 ```bash
 py -m pip install -r requirements.txt
    ```
+## 🔎 Verification Guide
 
+1. Install dependencies using `requirements.txt`.
+2. Run `py app.py`.
+3. Open `http://127.0.0.1:5000`.
+4. Open Live Translator.
+5. Allow webcam access.
+6. Show a supported gesture and hold it steadily.
+7. Observe the gesture, confidence score, text output, and optional speech.
 ---
+
+## 🏗️ System Architecture
+
+```text
+Browser Webcam
+      ↓
+Frame Capture
+      ↓
+Flask /predict API
+      ↓
+OpenCV Frame Decode
+      ↓
+MediaPipe Hands
+      ↓
+21 Hand Landmarks
+      ↓
+Rule-Based Gesture Classifier
+      ↓
+Confidence + Gesture Result
+      ↓
+Temporal Confirmation
+      ↓
+Text Message
+      ↓
+Optional Web Speech API
 
 ## Project Preview
 
 ![GestureSpeak AI](Screenshot.png)
+
+## 📸 Project Evidence
+
+### Working Prototype
+The repository includes a screenshot of the live GestureSpeak AI interface.
+
+![GestureSpeak AI](Screenshot.png)
+
+### Demonstrated Workflow
+Webcam → Hand Detection → Gesture Recognition → Confidence → Text → Speech
 
 ## 💻 Tech Stack & Architecture
 - **Frontend UI:** Modern Dark AI Theme with Cyan/Teal Accents (`#06b6d4`, `#14b8a6`, `#070b14`), Tailwind CSS, Space Grotesk + Inter fonts.
@@ -77,6 +120,48 @@ py -m pip install -r requirements.txt
 - **Audio Output:** Web Speech API (`SpeechSynthesis`) with configurable rate, pitch, and voice profiles.
 - **Accessibility:** Dynamic font scaling (A- to A++), High Contrast mode, screen-reader friendly ARIA markup.
 - **Privacy Guarantee:** 100% client-side local computation. No video or biometric data is stored or transmitted.
+
+## 🚀 Future Scope
+
+- Dataset-based accuracy evaluation
+- Larger real-user testing
+- Improved gesture robustness
+- Message history
+- Advanced voice controls
+- Improved classification using a trained ML model
+- Expanded gesture vocabulary
+---
+## 📊 Review-1 Progress
+
+### Completed
+- Flask backend and API routes
+- Browser webcam capture
+- OpenCV frame decoding
+- MediaPipe Hands detection
+- 21 hand landmark extraction
+- Rule-based gesture classification
+- Gesture-to-text mapping
+- Confidence score display
+- Temporal gesture confirmation
+- Browser Text-to-Speech
+- Auto-Speak option
+- Light/Dark theme
+- Font-size accessibility control
+- Camera start/stop controls
+- Error handling
+
+### Current Status
+Core recognition and communication pipeline is implemented and working as a
+prototype. Further validation, robustness testing, and additional features
+remain in progress.
+
+## ⚠️ Limitations
+
+- The current classifier is rule-based, not a trained ML model.
+- Recognition may vary with lighting, camera angle, distance, and hand position.
+- The system has not been validated against a labeled benchmark dataset.
+- This is an academic prototype, not a medical device or complete sign-language
+  translation system.
 
 ---
 
