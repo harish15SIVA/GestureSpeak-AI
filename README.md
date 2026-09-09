@@ -12,22 +12,25 @@ By leveraging computer vision and hand landmark tracking, the system recognizes 
 
 ---
 
-## 🔄 Core AI Pipeline Flow
+## 🔄 Core Recognition Pipeline
 ```
-Webcam 
-  ↓ [Raw video frames at 30–60 FPS]
-Hand Detection (MediaPipe Hands / BlazePalm)
-  ↓ [21 normalized 3D keypoint landmarks]
-Feature Extraction
-  ↓ [Finger extension states, Euclidean distance matrix, thumb angle]
-AI Gesture Classification
-  ↓ [Matches 1 of 10 predefined communication classes]
-Temporal Consistency Buffer
-  ↓ [10-frame sliding window, >=70% agreement to prevent flickering]
+Webcam
+  ↓ [Browser captures camera frames]
+OpenCV Frame Decode
+  ↓ [JPEG frame decoded on the local Flask server]
+MediaPipe Hands
+  ↓ [21 hand landmarks extracted]
+Landmark-Based Gesture Classification
+  ↓ [Rule-based finger states, distances and pose conditions]
+Confidence Evaluation
+  ↓ [Gesture confidence returned by the classifier]
+Temporal Confirmation
+  ↓ [Same gesture must remain stable for about 1.1 seconds]
 Text Translation & Display
-  ↓ [Large, accessible high-contrast UI display]
+  ↓ [Gesture mapped to an everyday communication message]
 Voice Output (Web Speech API)
-    [Synthesized audio speech pronunciation]
+  [Optional browser speech synthesis]
+
 ```
 
 ---
@@ -51,13 +54,8 @@ Voice Output (Web Speech API)
 
 ## 🚀 How to Run the Application
 
-### Option A: Zero-Installation Direct Browser Mode (Recommended)
-1. Double-click or open `index.html` in any modern web browser (**Google Chrome, Microsoft Edge, Mozilla Firefox, or Safari**).
-2. Click **"Start Camera Feed"** and allow webcam permission.
-3. Hold predefined gestures in front of your camera.
-4. Or switch to **"Demo Mode"** at any time to test all 10 gestures without requiring camera hardware!
 
-### Option B: Python + OpenCV + MediaPipe Engine
+### Python + OpenCV + MediaPipe Engine
 If you wish to test with the Python backend:
 1. Install Python dependencies:
    ```bash
