@@ -39,16 +39,16 @@ Voice Output (Web Speech API)
 
 | # | Gesture | Icon | Category | Pose Requirement | Output Sentence |
 |---|---|---|---|---|---|
-| 1 | **FOOD** | 🍛 | Need | Open palm, five fingers extended | "I want food." |
-| 2 | **WATER** | 💧 | Need | Three fingers extended | "I need water." |
-| 3 | **TEA / COFFEE** | ☕ | Need | Index and middle fingers extended | "I want tea or coffee." |
-| 4 | **HELP** | 🆘 | Need | Closed fist, all fingers folded | "I need help." |
-| 5 | **YES** | 👍 | Response | Thumb pointing upward | "Yes." |
-| 6 | **NO** | 👎 | Response | Thumb pointing downward | "No." |
-| 7 | **PLEASE** | 🙏 | Social | Two hands held close together | "Please." |
-| 8 | **WANT THAT** | ☝️ | Request | Only the index finger extended | "I want that." |
-| 9 | **OKAY** | 👌 | Response | Thumb and index finger form an OK sign | "I am okay." |
-| 10 | **HELLO** | 👋 | Social | Open hand waved side to side | "Hello. Please notice me." |
+| 1 | **HELLO** | 🖐️ | Social | Open hand raised, palm facing camera with all 5 fingers upright | "Hello, nice to meet you!" |
+| 2 | **YES** | 👍 | Response | Thumb pointing straight up, remaining fingers curled into a fist | "Yes." |
+| 3 | **NO** | 👎 | Response | Thumb pointing straight down, remaining fingers curled into a fist | "No." |
+| 4 | **HELP** | ✌️ | Need | V-sign (Peace Sign): index and middle fingers extended and spread, others curled | "I need help." |
+| 5 | **WATER** | 💧 | Need | 'W' sign: three middle fingers (index, middle, ring) extended upward, thumb and pinky curled | "I need water." |
+| 6 | **FOOD** | 🍽️ | Need | Pinch gesture: all fingertips gathered tightly touching or hovering near the thumb tip | "I want food." |
+| 7 | **STOP** | ✋ | Command | Open flat palm facing camera with fingers held upright and firmly spread | "Please stop." |
+| 8 | **THANK YOU** | 🙏 | Social | Index and middle fingers extended together side-by-side (parallel), not spread | "Thank you." |
+| 9 | **OKAY** | 👌 | Response | OK sign: thumb tip and index fingertip touching into a circle, other 3 fingers extended | "Everything is okay." |
+| 10 | **EMERGENCY** | 🚨 | Emergency | Clenched fist held steadily in front of the camera (all fingers tightly tucked) | "Emergency! I need immediate help." |
 
 ---
 
