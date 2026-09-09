@@ -38,37 +38,30 @@ Voice Output (Web Speech API)
 ## ✋ 10 Predefined Communication Gestures
 
 | # | Gesture | Icon | Category | Pose Requirement | Output Sentence |
-|---|---------|------|----------|------------------|-----------------|
-| 1 | **HELLO** | 🖐️ | Social | Open hand raised, palm facing camera | *"Hello, nice to meet you!"* |
-| 2 | **YES** | 👍 | Response | Thumb pointing straight up, fingers curled | *"Yes."* |
-| 3 | **NO** | 👎 | Response | Thumb pointing straight down, fingers curled | *"No."* |
-| 4 | **HELP** | ✌️ | Need | V-sign: index and middle fingers extended & spread | *"I need help."* |
-| 5 | **WATER** | 💧 | Need | 'W' sign: three middle fingers extended upright | *"I need water."* |
-| 6 | **FOOD** | 🍽️ | Need | Pinch pose: all fingertips clustered touching thumb | *"I want food."* |
-| 7 | **STOP** | ✋ | Command | Open flat palm facing forward, fingers firmly spread | *"Please stop."* |
-| 8 | **THANK YOU** | 🙏 | Social | Index and middle fingers extended together (parallel) | *"Thank you."* |
-| 9 | **OKAY** | 👌 | Response | OK sign: thumb and index forming circle, other 3 up | *"Everything is okay."* |
-| 10 | **EMERGENCY** | 🚨 | Emergency | Tightly clenched fist held steadily in frame | *"Emergency! I need immediate help."* |
+|---|---|---|---|---|---|
+| 1 | **FOOD** | 🍛 | Need | Open palm, five fingers extended | "I want food." |
+| 2 | **WATER** | 💧 | Need | Three fingers extended | "I need water." |
+| 3 | **TEA / COFFEE** | ☕ | Need | Index and middle fingers extended | "I want tea or coffee." |
+| 4 | **HELP** | 🆘 | Need | Closed fist, all fingers folded | "I need help." |
+| 5 | **YES** | 👍 | Response | Thumb pointing upward | "Yes." |
+| 6 | **NO** | 👎 | Response | Thumb pointing downward | "No." |
+| 7 | **PLEASE** | 🙏 | Social | Two hands held close together | "Please." |
+| 8 | **WANT THAT** | ☝️ | Request | Only the index finger extended | "I want that." |
+| 9 | **OKAY** | 👌 | Response | Thumb and index finger form an OK sign | "I am okay." |
+| 10 | **HELLO** | 👋 | Social | Open hand waved side to side | "Hello. Please notice me." |
 
 ---
 
 ## 🚀 How to Run the Application
 
+### Python + Flask + OpenCV + MediaPipe
 
-### Python + OpenCV + MediaPipe Engine
-If you wish to test with the Python backend:
-1. Install Python dependencies:
-   ```bash
-   py -m pip install -r requirements.txt
-   ```
-2. Start the Flask server:
-   ```bash
-   py app.py
-   ```
-   Open `http://localhost:5000` in your browser.
-3. Or run the standalone native desktop OpenCV runner:
-   ```bash
-   py gesture_detector.py
+1. Install Python 3.10 or 3.11.
+
+2. Install dependencies:
+
+```bash
+py -m pip install -r requirements.txt
    ```
 
 ---
