@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GestureSpeak AI — AI-Based Hand Gesture Communication System</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React 18 & ReactDOM 18 -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Pinned Babel 7 Standalone (Avoids Babel 8 automatic runtime module error) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.4/babel.min.js"></script>
+  <!-- MediaPipe Hands & Camera Utils -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <!-- Google Fonts: Space Grotesk & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #070b14;
+      --bg-card: #0d1527;
+      --bg-card-hover: #131f38;
+      --bg-accent: #0f1c33;
+      --border-cyan: rgba(6, 182, 212, 0.22);
+      --border-cyan-bright: rgba(6, 182, 212, 0.6);
+      --cyan: #06b6d4;
+      --cyan-light: #22d3ee;
+      --teal: #14b8a6;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --red: #ef4444;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --glow-cyan: 0 0 25px rgba(6, 182, 212, 0.25);
+      --glow-teal: 0 0 25px rgba(20, 184, 166, 0.25);
+    }
+    [data-theme="light"] {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --bg-accent: #e2e8f0;
+      --border-cyan: rgba(14, 165, 233, 0.25);
+      --border-cyan-bright: rgba(14, 165, 233, 0.6);
+      --cyan: #0284c7;
+      --cyan-light: #0369a1;
+      --teal: #0d9488;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --glow-cyan: 0 4px 20px rgba(2, 132, 199, 0.15);
+      --glow-teal: 0 4px 20px rgba(13, 148, 136, 0.15);
+    }
+    [data-theme="high-contrast"] {
+      --bg-main: #000000;
+      --bg-card: #0a0a0a;
+      --bg-card-hover: #171717;
+      --bg-accent: #262626;
+      --border-cyan: #00ffff;
+      --border-cyan-bright: #00ffff;
+      --cyan: #00ffff;
+      --cyan-light: #ffff00;
+      --teal: #00ffaa;
+      --text-main: #ffffff;
+      --text-muted: #cccccc;
+      --glow-cyan: none;
+      --glow-teal: none;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .font-tech { font-family: 'Space Grotesk', sans-serif; }
+    
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-main); }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; border: 1px solid var(--border-cyan); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+    .cyber-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-cyan);
+      border-radius: 1rem;
+      backdrop-filter: blur(12px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cyber-card:hover {
+      border-color: var(--border-cyan-bright);
+      box-shadow: var(--glow-cyan);
+    }
+    .cyber-card-active {
+      border-color: var(--cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .btn-cyber-primary {
+      background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
+      color: #04121d;
+      font-weight: 700;
+      padding: 0.75rem 1.6rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35);
+    }
+    .btn-cyber-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.55);
+      filter: brightness(1.1);
+    }
+    .btn-cyber-primary:active:not(:disabled) { transform: translateY(0); }
+    .btn-cyber-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-cyber-secondary {
+      background: rgba(6, 182, 212, 0.08);
+      color: var(--cyan-light);
+      border: 1px solid var(--border-cyan);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    .btn-cyber-secondary:hover {
+      background: rgba(6, 182, 212, 0.16);
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+    }
+
+    .btn-emergency {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    }
+    .btn-emergency:hover {
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+    }
+
+    .webcam-viewport {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #020611;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1.5px solid var(--border-cyan);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    }
+    .webcam-viewport video,
+    .webcam-viewport canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    @keyframes emergencyPulse {
+      0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); border-color: #ef4444; }
+      50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.85); border-color: #fca5a5; }
+      100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); border-color: #ef4444; }
+    }
+    .emergency-glow {
+      animation: emergencyPulse 1.2s infinite ease-in-out;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.25)) !important;
+    }
+
+    .wave-bar {
+      width: 3.5px;
+      background: var(--cyan);
+      border-radius: 2px;
+      animation: wave 1s ease-in-out infinite alternate;
+    }
+    @keyframes wave {
+      0% { height: 6px; }
+      100% { height: 26px; }
+    }
+
+    .status-bulb {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-bulb.active { background: #10b981; box-shadow: 0 0 10px #10b981; }
+    .status-bulb.processing { background: #06b6d4; box-shadow: 0 0 10px #06b6d4; }
+    .status-bulb.warning { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+    .status-bulb.danger { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+    .status-bulb.idle { background: #64748b; }
+
+    .cyber-toggle {
+      position: relative;
+      width: 46px; height: 24px;
+      background: #1e293b;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid var(--border-cyan);
+      transition: all 0.2s ease;
+    }
+    .cyber-toggle.on {
+      background: var(--cyan);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+    }
+    .cyber-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cyber-toggle.on::after {
+      transform: translateX(22px);
+      background: #081426;
+    }
+
+    .hud-box { position: relative; }
+    .hud-box::before {
+      content: ''; position: absolute; top: -1px; left: -1px;
+      width: 12px; height: 12px;
+      border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan);
+      border-top-left-radius: 8px; pointer-events: none;
+    }
+    .hud-box::after {
+      content: ''; position: absolute; bottom: -1px; right: -1px;
+      width: 12px; height: 12px;
+      border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan);
+      border-bottom-right-radius: 8px; pointer-events: none;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--cyan) !important;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+﻿
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+// ============================================================================
+// 10 PREDEFINED EVERYDAY COMMUNICATION GESTURES CONFIGURATION
+// ============================================================================
+const GESTURES_DATA = [
+  {
+    id: "HELLO",
+    name: "Hello",
+    message: "Hello, nice to meet you!",
+    icon: "🖐️",
+    category: "Social",
+    hint: "Open hand raised, palm facing camera with all 5 fingers upright",
+    color: "#06b6d4", // Cyan
+    threshold: 0.75,
+    isEmergency: false,
+    demoConfidence: 94
+  },
+  {
+    id: "YES",
+    name: "Yes",
+    message: "Yes.",
+    icon: "👍",
+    category: "Response",
+    hint: "Thumb pointing straight up, remaining fingers curled into a fist",
+    color: "#10b981", // Emerald Green
+    threshold: 0.75,
+    isEmergency: false,
+    demoConfidence: 96
+  },
+  {
+    id: "NO",
+    name: "No",
+    message: "No.",
+    icon: "👎",
+    category: "Response",
+    hint: "Thumb pointing straight down, remaining fingers curled into a fist",
+    color: "#ef4444", // Red
+    threshold: 0.75,
+    isEmergency: false,
+    demoConfidence: 95
+  },
+  {
+    id: "HELP",
+    name: "Help",
+    message: "I need help.",
+    icon: "✌️",
+    category: "Need",
+    hint: "V-Sign (Peace Sign): Index and middle fingers extended and spread, others curled",
+    color: "#8b5cf6", // Violet
+    threshold: 0.75,
+    isEmergency: false,
+    demoConfidence: 97
+  },
+  {
+    id: "WATER",
+    name: "Water",
+    message: "I need water.",
+    icon: "💧",
+    category: "Need",
+    hint: "'W' Sign: Three middle fingers (index, middle, ring) extended upward, thumb and pinky curled",
+    color: "#0ea5e9", // Sky Blue
+    threshold: 0.75,
+    isEmergency: false,
+    demoConfidence: 93
+  },
+  {
+    id: "FOOD",
+    name: "Food",
+    message: "I want food.",
+    icon: "🍽️",
+    category: "Need",
+    hint: "Pinch gesture: All fingertips gathered tightly touching or hovering near the thumb tip",
+    color: "#f97316", // Amber / Orange
+    threshold: 0.72,
+    isEmergency: false,
+    demoConfidence: 92
+  },
+  {
+    id: "STOP",
+    name: "Stop",
+    message: "Please stop.",
+    icon: "✋",
+    category: "Command",
+    hint: "Open flat palm facing camera with fingers held upright and firmly spread",
+    color: "#eab308", // Yellow
+    threshold: 0.78,
+    isEmergency: false,
+    demoConfidence: 96
+  },
+  {
+    id: "THANK_YOU",
+    name: "Thank You",
+    message: "Thank you.",
+    icon: "🙏",
+    category: "Social",
+    hint: "Index and middle fingers extended together side-by-side (parallel), not spread",
+    color: "#14b8a6", // Teal
+    threshold: 0.74,
+    isEmergency: false,
+    demoConfidence: 91
+  },
+  {
+    id: "OKAY",
+    name: "Okay",
+    message: "Everything is okay.",
+    icon: "👌",
+    category: "Response",
+    hint: "OK sign: Thumb tip and index fingertip touching into a circle, other 3 fingers extended",
+    color: "#22c55e", // Light Green
+    threshold: 0.75,
+    isEmergency: false,
+    demoConfidence: 95
+  },
+  {
+    id: "EMERGENCY",
+    name: "Emergency",
+    message: "Emergency! I need immediate help.",
+    icon: "🚨",
+    category: "Emergency",
+    hint: "Clenched fist held steadily in front of the camera (all fingers tightly tucked)",
+    color: "#dc2626", // Alert Red
+    threshold: 0.72,
+    isEmergency: true,
+    demoConfidence: 99
+  }
+];
+
+// ============================================================================
+// COMPUTER VISION & HAND LANDMARK CLASSIFICATION LOGIC
+// ============================================================================
+function dist3d(p1, p2) {
+  return Math.hypot(p1.x - p2.x, p1.y - p2.y, (p1.z || 0) - (p2.z || 0));
+}
+
+function classifyHandPose(landmarks) {
+  if (!landmarks || landmarks.length < 21) {
+    return { id: "UNKNOWN", confidence: 0 };
+  }
+
+  const lm = landmarks;
+
+  // Extension check: In MediaPipe, Y increases downwards.
+  // Fingertip is extended if tip.y is significantly above pip.y
+  const isExtended = (tipIdx, pipIdx, delta = 0.025) => {
+    return lm[tipIdx].y < (lm[pipIdx].y - delta);
+  };
+
+  const wrist = lm[0];
+  const indexMcp = lm[5];
+  const thumbTip = lm[4];
+  const thumbIp = lm[3];
+  const thumbMcp = lm[2];
+
+  // Thumb extension & orientation
+  const isRightHand = wrist.x < indexMcp.x;
+  const thumbExtended = isRightHand
+    ? (thumbTip.x < thumbIp.x - 0.02)
+    : (thumbTip.x > thumbIp.x + 0.02);
+
+  const thumbPointingUp = thumbTip.y < (thumbMcp.y - 0.06);
+  const thumbPointingDown = thumbTip.y > (thumbMcp.y + 0.06);
+
+  const indexUp = isExtended(8, 6);
+  const middleUp = isExtended(12, 10);
+  const ringUp = isExtended(16, 14);
+  const pinkyUp = isExtended(20, 18);
+
+  const extendedFingersCount = [thumbExtended, indexUp, middleUp, ringUp, pinkyUp].filter(Boolean).length;
+
+  // Inter-finger distances
+  const thumbToIndexDist = dist3d(lm[4], lm[8]);
+  const thumbToMiddleDist = dist3d(lm[4], lm[12]);
+  const indexToMiddleDist = dist3d(lm[8], lm[12]);
+  const middleToRingDist = dist3d(lm[12], lm[16]);
+
+  // Check all curled (fist)
+  const allCurled = [8, 12, 16, 20].every(idx => lm[idx].y > lm[idx - 2].y + 0.01);
+
+  // 1. EMERGENCY: Closed fist with no fingers extended
+  if (allCurled && !thumbPointingUp && !thumbPointingDown) {
+    return { id: "EMERGENCY", confidence: 0.88 };
+  }
+
+  // 2. YES: Thumbs Up only
+  if (thumbPointingUp && !indexUp && !middleUp && !ringUp && !pinkyUp) {
+    return { id: "YES", confidence: 0.92 };
+  }
+
+  // 3. NO: Thumbs Down only
+  if (thumbPointingDown && !indexUp && !middleUp && !ringUp && !pinkyUp) {
+    return { id: "NO", confidence: 0.90 };
+  }
+
+  // 4. OKAY: Thumb tip and index tip forming circle + middle, ring, pinky extended
+  const isOkCircle = thumbToIndexDist < 0.065;
+  if (isOkCircle && middleUp && ringUp && pinkyUp && !indexUp) {
+    return { id: "OKAY", confidence: 0.89 };
+  }
+
+  // 5. STOP: Open palm with all 5 fingers extended and spread
+  if (indexUp && middleUp && ringUp && pinkyUp && thumbExtended && extendedFingersCount >= 5) {
+    if (indexToMiddleDist > 0.04 && middleToRingDist > 0.04) {
+      return { id: "STOP", confidence: 0.91 };
+    }
+  }
+
+  // 6. HELLO: Open hand raised, palm facing camera (4 or 5 fingers upright)
+  if (indexUp && middleUp && ringUp && pinkyUp && !thumbPointingDown) {
+    return { id: "HELLO", confidence: 0.86 };
+  }
+
+  // 7. WATER: Three middle fingers extended (index, middle, ring) — 'W' shape
+  if (indexUp && middleUp && ringUp && !pinkyUp && !thumbPointingUp) {
+    return { id: "WATER", confidence: 0.88 };
+  }
+
+  // 8. HELP vs 9. THANK_YOU (Index + Middle extended)
+  if (indexUp && middleUp && !ringUp && !pinkyUp) {
+    if (indexToMiddleDist > 0.045) {
+      return { id: "HELP", confidence: 0.89 }; // V-sign spread
+    } else {
+      return { id: "THANK_YOU", confidence: 0.84 }; // Fingers parallel/touching
+    }
+  }
+
+  // 10. FOOD: Pinch pose (all fingertips clustered near thumb)
+  const isPinch = (thumbToIndexDist < 0.08 && thumbToMiddleDist < 0.09 && !indexUp && !middleUp);
+  if (isPinch) {
+    return { id: "FOOD", confidence: 0.85 };
+  }
+
+  return { id: "UNKNOWN", confidence: 0 };
+}
+
+// ============================================================================
+// TEMPORAL SMOOTHING BUFFER (Debounce & Consistency)
+// ============================================================================
+class TemporalSmoother {
+  constructor(windowSize = 10, consistencyRatio = 0.7) {
+    this.windowSize = windowSize;
+    this.consistencyRatio = consistencyRatio;
+    this.history = [];
+    this.lastConfirmedGesture = null;
+  }
+
+  push(prediction) {
+    this.history.push(prediction);
+    if (this.history.length > this.windowSize) {
+      this.history.shift();
+    }
+    return this.evaluate();
+  }
+
+  evaluate() {
+    if (this.history.length < 5) return null;
+
+    const counts = {};
+    const totalConf = {};
+
+    for (const item of this.history) {
+      if (!item || item.id === "UNKNOWN") continue;
+      counts[item.id] = (counts[item.id] || 0) + 1;
+      totalConf[item.id] = (totalConf[item.id] || 0) + item.confidence;
+    }
+
+    const sortedEntries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (sortedEntries.length === 0) return null;
+
+    const [topId, topCount] = sortedEntries[0];
+    const consistency = topCount / this.history.length;
+
+    if (consistency >= this.consistencyRatio) {
+      const avgConf = totalConf[topId] / topCount;
+      const smoothedConfidence = Math.min(avgConf * (0.9 + consistency * 0.15), 0.99);
+      this.lastConfirmedGesture = topId;
+      return {
+        id: topId,
+        confidence: smoothedConfidence,
+        isStable: true
+      };
+    }
+    return null;
+  }
+
+  reset() {
+    this.history = [];
+    this.lastConfirmedGesture = null;
+  }
+}
+
+// ============================================================================
+// BROWSER TEXT-TO-SPEECH SERVICE
+// ============================================================================
+const TTS = {
+  isSupported: typeof window !== "undefined" && "speechSynthesis" in window,
+  voices: [],
+
+  init() {
+    if (!this.isSupported) return;
+    this.loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = () => this.loadVoices();
+    }
+  },
+
+  loadVoices() {
+    if (!this.isSupported) return [];
+    this.voices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith("en"));
+    return this.voices;
+  },
+
+  speak(text, settings = {}, onStart, onEnd) {
+    if (!this.isSupported || !text) return;
+    try {
+      window.speechSynthesis.cancel(); // Stop any pending utterance
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = settings.rate ?? 1.0;
+      utterance.pitch = settings.pitch ?? 1.0;
+      utterance.volume = settings.volume ?? 1.0;
+
+      if (settings.voiceURI && this.voices.length > 0) {
+        const found = this.voices.find(v => v.voiceURI === settings.voiceURI);
+        if (found) utterance.voice = found;
+      }
+
+      if (onStart) utterance.onstart = onStart;
+      if (onEnd) utterance.onend = onEnd;
+      utterance.onerror = () => onEnd && onEnd();
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("TTS Error:", e);
+      if (onEnd) onEnd();
+    }
+  },
+
+  stop() {
+    if (this.isSupported) window.speechSynthesis.cancel();
+  }
+};
+TTS.init();
+// ============================================================================
+// UI COMPONENTS
+// ============================================================================
+
+function ConfidenceMeter({ confidence, threshold = 0.75 }) {
+  const pct = Math.round(confidence * 100);
+  const isHigh = confidence >= threshold;
+  const isMed = confidence >= 0.5;
+  const barColor = isHigh ? "linear-gradient(90deg, #06b6d4, #10b981)" : isMed ? "#f59e0b" : "#ef4444";
+  const textColor = isHigh ? "#10b981" : isMed ? "#f59e0b" : "#ef4444";
+
+  return (
+    <div className="w-full">
+      <div className="flex justify-between items-center text-xs font-semibold mb-1">
+        <span className="text-slate-400">Recognition Confidence</span>
+        <span style={{ color: textColor }} className="font-mono text-sm">{pct}%</span>
+      </div>
+      <div className="w-full h-2.5 bg-slate-800/80 rounded-full overflow-hidden relative border border-slate-700/50">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{ width: `${pct}%`, background: barColor }}
+        />
+        <div
+          className="absolute top-0 bottom-0 w-0.5 bg-cyan-400/80 shadow-[0_0_8px_#22d3ee]"
+          style={{ left: `${threshold * 100}%` }}
+          title={`Threshold: ${threshold * 100}%`}
+        />
+      </div>
+      <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+        <span>0%</span>
+        <span className="text-cyan-400/70">Threshold: {Math.round(threshold * 100)}%</span>
+        <span>100%</span>
+      </div>
+    </div>
+  );
+}
+
+function AudioWave({ isSpeaking }) {
+  if (!isSpeaking) return null;
+  return (
+    <div className="flex items-center gap-1 h-6 px-2 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full">
+      <div className="wave-bar" style={{ animationDelay: "0ms" }} />
+      <div className="wave-bar" style={{ animationDelay: "150ms" }} />
+      <div className="wave-bar" style={{ animationDelay: "300ms" }} />
+      <div className="wave-bar" style={{ animationDelay: "450ms" }} />
+      <span className="text-[11px] font-semibold text-cyan-400 ml-1">Speaking...</span>
+    </div>
+  );
+}
+
+function CameraPanel({ onResults, cameraActive, setCameraActive, cameraError, setCameraError, processingMode }) {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const handsRef = useRef(null);
+  const cameraRef = useRef(null);
+  const [multiHandAlert, setMultiHandAlert] = useState(false);
+  const [modelLoading, setModelLoading] = useState(false);
+  const [fps, setFps] = useState(0);
+  const lastTimeRef = useRef(performance.now());
+  const frameCountRef = useRef(0);
+
+  const onMediaPipeResults = useCallback((results) => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // FPS calculation
+    frameCountRef.current++;
+    const now = performance.now();
+    if (now - lastTimeRef.current >= 1000) {
+      setFps(Math.round((frameCountRef.current * 1000) / (now - lastTimeRef.current)));
+      frameCountRef.current = 0;
+      lastTimeRef.current = now;
+    }
+
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+      setMultiHandAlert(results.multiHandLandmarks.length > 1);
+
+      for (const landmarks of results.multiHandLandmarks) {
+        // Draw Skeleton Connections
+        if (window.drawConnectors && window.HAND_CONNECTIONS) {
+          window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, {
+            color: "rgba(6, 182, 212, 0.65)",
+            lineWidth: 2.5
+          });
+        }
+
+        // Draw Keypoints
+        for (let i = 0; i < landmarks.length; i++) {
+          const pt = landmarks[i];
+          const x = pt.x * canvas.width;
+          const y = pt.y * canvas.height;
+
+          ctx.beginPath();
+          // Fingertips (4, 8, 12, 16, 20) highlighted in bright teal/cyan
+          if ([4, 8, 12, 16, 20].includes(i)) {
+            ctx.arc(x, y, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = "#22d3ee";
+            ctx.shadowColor = "#06b6d4";
+            ctx.shadowBlur = 10;
+          } else {
+            ctx.arc(x, y, 3.5, 0, 2 * Math.PI);
+            ctx.fillStyle = "#14b8a6";
+            ctx.shadowBlur = 0;
+          }
+          ctx.fill();
+        }
+      }
+
+      onResults(results.multiHandLandmarks[0], results.multiHandLandmarks.length);
+    } else {
+      setMultiHandAlert(false);
+      onResults(null, 0);
+    }
+  }, [onResults]);
+
+  const startCamera = async () => {
+    setCameraError(null);
+    setModelLoading(true);
+    try {
+      if (!window.Hands) {
+        throw new Error("MediaPipe Hands library not loaded. Check your internet connection.");
+      }
+
+      const hands = new window.Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+
+      hands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.65,
+        minTrackingConfidence: 0.65
+      });
+
+      hands.onResults(onMediaPipeResults);
+      
+      // Initialize model without blocking video stream
+      try {
+        await Promise.race([
+          hands.initialize(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("init-timeout")), 4000))
+        ]);
+      } catch (e) {
+        console.log("MediaPipe background warmup will continue on first frame:", e);
+      }
+      handsRef.current = hands;
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: "user"
+        }
+      });
+
+      let isCancelled = false;
+      let isProcessingFrame = false;
+
+      const processLoop = async () => {
+        if (isCancelled || !videoRef.current || !handsRef.current) return;
+        if (videoRef.current.readyState >= 2 && !isProcessingFrame) {
+          isProcessingFrame = true;
+          try {
+            await handsRef.current.send({ image: videoRef.current });
+          } catch (e) {
+            // Frame skip is normal during heavy renders
+          } finally {
+            isProcessingFrame = false;
+          }
+        }
+        if (!isCancelled) {
+          requestAnimationFrame(processLoop);
+        }
+      };
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        
+        // Listen to loadedmetadata or play immediately
+        const startPlayback = async () => {
+          try {
+            await videoRef.current.play();
+          } catch (pErr) {
+            console.warn("Autoplay promise:", pErr);
+          }
+          setModelLoading(false);
+          setCameraActive(true);
+          processLoop();
+        };
+
+        if (videoRef.current.readyState >= 1) {
+          await startPlayback();
+        } else {
+          videoRef.current.onloadedmetadata = startPlayback;
+          // Fallback timer to guarantee overlay disappears
+          setTimeout(() => {
+            setModelLoading(false);
+            setCameraActive(true);
+            processLoop();
+          }, 600);
+        }
+      }
+
+      handsRef.current._cleanup = () => { isCancelled = true; };
+    } catch (err) {
+      console.error("Camera Init Error:", err);
+      setModelLoading(false);
+      setCameraActive(false);
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        setCameraError("Camera permission was denied. Please allow access in your browser address bar.");
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        setCameraError("No webcam found on this device. You can test gestures using Demo Simulation Mode.");
+      } else {
+        setCameraError(err.message || "Failed to initialize camera or MediaPipe AI model.");
+      }
+    }
+  };
+
+  const stopCamera = () => {
+    if (handsRef.current?._cleanup) {
+      handsRef.current._cleanup();
+    }
+    if (videoRef.current?.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+      videoRef.current.srcObject = null;
+    }
+    if (handsRef.current) {
+      try { handsRef.current.close(); } catch (e) {}
+      handsRef.current = null;
+    }
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    setCameraActive(false);
+    setMultiHandAlert(false);
+    onResults(null, 0);
+  };
+
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="webcam-viewport relative hud-box">
+        {!cameraActive && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-[#070b14]/90 backdrop-blur-sm">
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mb-4 text-cyan-400 text-3xl shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+              📷
+            </div>
+            <h3 className="font-tech text-lg font-bold text-white mb-2">Webcam Recognition</h3>
+            <p className="text-slate-400 text-sm max-w-sm mb-6">
+              Position your hand clearly within the camera frame. The AI extracts 21 skeleton landmarks in real time.
+            </p>
+            {cameraError ? (
+              <div className="bg-rose-500/15 border border-rose-500/40 rounded-xl p-3 text-rose-300 text-xs max-w-md mb-4 text-left">
+                <strong>Camera Notice:</strong> {cameraError}
+              </div>
+            ) : null}
+            <button
+              onClick={startCamera}
+              disabled={modelLoading}
+              className="btn-cyber-primary text-sm px-6 py-3"
+            >
+              {modelLoading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                  Loading MediaPipe Engine...
+                </>
+              ) : (
+                <>
+                  <span>▶</span> Start Camera Feed
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          style={{ transform: "scaleX(-1)" }}
+          aria-label="Webcam Video Stream"
+        />
+        <canvas
+          ref={canvasRef}
+          style={{ transform: "scaleX(-1)" }}
+          className="pointer-events-none"
+          aria-hidden="true"
+        />
+
+        {/* Live HUD Badges */}
+        {cameraActive && (
+          <div className="absolute top-3 left-3 z-20 flex items-center gap-2 bg-slate-900/80 border border-cyan-500/30 px-3 py-1 rounded-lg backdrop-blur-md">
+            <span className="status-bulb active" />
+            <span className="font-tech text-xs font-bold text-cyan-400 tracking-wider">LIVE FEED</span>
+            <span className="text-[10px] text-slate-400 font-mono border-l border-slate-700 pl-2">{fps} FPS</span>
+          </div>
+        )}
+
+        {multiHandAlert && (
+          <div className="absolute top-3 right-3 z-20 bg-amber-500/90 text-black px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-lg animate-bounce">
+            <span>⚠️</span> Multiple Hands Detected (Show 1 Hand)
+          </div>
+        )}
+
+        {cameraActive && (
+          <div className="absolute bottom-3 right-3 z-20">
+            <button
+              onClick={stopCamera}
+              className="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-xs font-semibold backdrop-blur-md transition-all"
+            >
+              ⏹ Stop Camera
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Privacy Notice Card */}
+      <div className="p-3 bg-cyan-950/20 border border-cyan-500/20 rounded-xl flex items-start gap-2.5 text-xs text-slate-400">
+        <span className="text-cyan-400 text-base leading-none mt-0.5">🔒</span>
+        <div>
+          <strong className="text-slate-200">Local Client-Side Processing:</strong> Camera video frames are analyzed locally in your browser. No image or video footage is recorded, stored, or sent to external servers.
+        </div>
+      </div>
+    </div>
+  );
+}
+// ============================================================================
+// RECOGNITION OUTPUT PANEL
+// ============================================================================
+function OutputPanel({
+  recognized,
+  isDemoMode,
+  autoSpeak,
+  setAutoSpeak,
+  onSpeak,
+  onCopy,
+  onClear,
+  copied,
+  isSpeaking,
+  speechSettings,
+  setSpeechSettings,
+  ttsSupported
+}) {
+  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  const gestureInfo = recognized ? GESTURES_DATA.find(g => g.id === recognized.id) : null;
+  const isEmergency = gestureInfo?.isEmergency;
+  const isConfident = recognized && recognized.confidence >= (gestureInfo?.threshold || 0.75);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {isDemoMode && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 text-amber-400 font-semibold">
+            <span>🎭</span>
+            <span>SIMULATION DEMO MODE ACTIVE</span>
+          </div>
+          <span className="text-amber-400/80 font-mono text-[11px]">Click any gesture in guide below</span>
+        </div>
+      )}
+
+      {/* Main Communication Display Box */}
+      <div
+        className={`cyber-card p-6 min-h-[260px] flex flex-col justify-between transition-all ${
+          isEmergency && isConfident ? "emergency-glow border-red-500" : ""
+        }`}
+      >
+        {/* Card Header Status */}
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
+          <div className="flex items-center gap-2">
+            <span className={`status-bulb ${isConfident ? "active" : recognized ? "warning" : "idle"}`} />
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-tech">
+              {isDemoMode ? "Simulated Output" : "AI Detection Output"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <AudioWave isSpeaking={isSpeaking} />
+            {gestureInfo?.category && (
+              <span
+                className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider font-tech"
+                style={{
+                  color: gestureInfo.color,
+                  borderColor: `${gestureInfo.color}44`,
+                  background: `${gestureInfo.color}15`
+                }}
+              >
+                {gestureInfo.category}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Dynamic Center Message */}
+        <div className="my-4">
+          {isConfident ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="text-4xl">{gestureInfo?.icon || "✋"}</span>
+                <div>
+                  <span className="text-xs text-slate-400 font-mono uppercase">Recognized Pose</span>
+                  <h2
+                    className="font-tech text-2xl sm:text-3xl font-extrabold tracking-tight"
+                    style={{ color: gestureInfo?.color || "var(--cyan)" }}
+                  >
+                    {gestureInfo?.name || recognized.id}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-700/50">
+                <span className="text-[11px] text-slate-400 uppercase font-semibold tracking-wider block mb-1">
+                  Translated Communication Text
+                </span>
+                <p className="text-xl sm:text-2xl font-bold text-white leading-snug">
+                  "{gestureInfo?.message || recognized.id}"
+                </p>
+              </div>
+
+              {isEmergency && (
+                <div className="p-3 bg-red-950/40 border border-red-500/50 rounded-xl text-red-200 text-xs flex items-center gap-2 animate-pulse">
+                  <span className="text-xl">🚨</span>
+                  <div>
+                    <strong>Emergency Alert:</strong> Immediate assistance requested.
+                  </div>
+                </div>
+              )}
+
+              <ConfidenceMeter confidence={recognized.confidence} threshold={gestureInfo?.threshold || 0.75} />
+            </div>
+          ) : recognized && recognized.id !== "UNKNOWN" ? (
+            <div className="space-y-3 py-2">
+              <div className="flex items-center gap-2 text-amber-400">
+                <span className="text-xl">⚠️</span>
+                <span className="font-semibold text-sm">Gesture Unclear — Hold Steady</span>
+              </div>
+              <p className="text-slate-400 text-xs">
+                Candidate: <strong className="text-slate-200">{recognized.id}</strong> (Score: {Math.round(recognized.confidence * 100)}%)
+              </p>
+              <ConfidenceMeter confidence={recognized.confidence} threshold={0.75} />
+            </div>
+          ) : (
+            <div className="py-8 text-center text-slate-500 flex flex-col items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-slate-800/40 border border-slate-700/40 flex items-center justify-center text-2xl text-slate-400 mb-3 opacity-60">
+                ✋
+              </div>
+              <p className="font-tech text-base font-semibold text-slate-300">
+                {isDemoMode ? "Select a gesture from the guide to test" : "Awaiting Hand Gesture"}
+              </p>
+              <p className="text-xs text-slate-500 mt-1 max-w-xs">
+                Hold your hand steadily in front of your camera to trigger instant translation.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons Toolbar */}
+        <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+          <button
+            onClick={onSpeak}
+            disabled={!isConfident || !ttsSupported}
+            className={`flex-1 min-w-[120px] ${
+              isEmergency && isConfident ? "btn-emergency" : "btn-cyber-primary"
+            } py-2.5 text-sm font-semibold rounded-lg`}
+          >
+            <span>🔊</span> Speak Message
+          </button>
+
+          <button
+            onClick={onCopy}
+            disabled={!isConfident}
+            className="btn-cyber-secondary py-2.5 px-4 text-sm font-semibold rounded-lg"
+          >
+            {copied ? (
+              <span className="text-emerald-400 font-bold">✓ Copied</span>
+            ) : (
+              <span>📋 Copy</span>
+            )}
+          </button>
+
+          <button
+            onClick={onClear}
+            className="px-3 py-2.5 bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg text-sm transition-all"
+            title="Clear current recognition"
+          >
+            ✕ Clear
+          </button>
+        </div>
+      </div>
+
+      {/* Settings Bar (Auto-Speak & Voice Drawer) */}
+      <div className="cyber-card p-4 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="font-tech font-bold text-sm text-slate-200">Auto-Speak Translations</span>
+            <p className="text-slate-400 text-xs">Automatically speak out newly confirmed gestures once</p>
+          </div>
+          <div
+            onClick={() => setAutoSpeak(!autoSpeak)}
+            className={`cyber-toggle ${autoSpeak ? "on" : ""}`}
+            role="switch"
+            aria-checked={autoSpeak}
+            tabIndex={0}
+            aria-label="Toggle auto speak"
+          />
+        </div>
+
+        <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between">
+          <button
+            onClick={() => setShowVoiceSettings(!showVoiceSettings)}
+            className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5"
+          >
+            <span>⚙️</span> {showVoiceSettings ? "Hide Voice Settings" : "Voice Settings (Speed / Pitch / Voice)"}
+          </button>
+          {!ttsSupported && (
+            <span className="text-[11px] text-rose-400">TTS unsupported in this browser</span>
+          )}
+        </div>
+
+        {showVoiceSettings && (
+          <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-3 mt-1 text-xs">
+            {TTS.voices.length > 0 && (
+              <div>
+                <label className="text-slate-400 font-semibold block mb-1">Select Voice</label>
+                <select
+                  value={speechSettings.voiceURI || ""}
+                  onChange={(e) => setSpeechSettings({ ...speechSettings, voiceURI: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 text-slate-200 rounded-lg p-2 text-xs"
+                >
+                  <option value="">Browser Default Voice</option>
+                  {TTS.voices.map(v => (
+                    <option key={v.voiceURI} value={v.voiceURI}>
+                      {v.name} ({v.lang})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <div className="flex justify-between text-slate-400 mb-1">
+                  <span>Speed (Rate)</span>
+                  <span className="font-mono text-cyan-400">{speechSettings.rate}x</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2.0"
+                  step="0.1"
+                  value={speechSettings.rate}
+                  onChange={(e) => setSpeechSettings({ ...speechSettings, rate: parseFloat(e.target.value) })}
+                  className="w-full accent-cyan-400 cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between text-slate-400 mb-1">
+                  <span>Pitch</span>
+                  <span className="font-mono text-cyan-400">{speechSettings.pitch}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="1.5"
+                  step="0.1"
+                  value={speechSettings.pitch}
+                  onChange={(e) => setSpeechSettings({ ...speechSettings, pitch: parseFloat(e.target.value) })}
+                  className="w-full accent-cyan-400 cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between text-slate-400 mb-1">
+                  <span>Volume</span>
+                  <span className="font-mono text-cyan-400">{Math.round(speechSettings.volume * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.0"
+                  max="1.0"
+                  step="0.05"
+                  value={speechSettings.volume}
+                  onChange={(e) => setSpeechSettings({ ...speechSettings, volume: parseFloat(e.target.value) })}
+                  className="w-full accent-cyan-400 cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <button
+                onClick={() => TTS.speak("GestureSpeak AI voice calibration test. Hello.", speechSettings)}
+                className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg text-xs font-semibold"
+              >
+                Test Voice Output
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// GESTURE GUIDE COMPONENT (10 Gestures Visual Catalog)
+// ============================================================================
+function GestureGuide({ onSelectDemoGesture, selectedDemoId }) {
+  const [filterCategory, setFilterCategory] = useState("All");
+  const categories = ["All", "Need", "Response", "Social", "Command", "Emergency"];
+
+  const filtered = useMemo(() => {
+    if (filterCategory === "All") return GESTURES_DATA;
+    return GESTURES_DATA.filter(g => g.category === filterCategory);
+  }, [filterCategory]);
+
+  return (
+    <div className="space-y-4">
+      {/* Category Pills */}
+      <div className="flex flex-wrap gap-1.5">
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setFilterCategory(cat)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-tech font-semibold transition-all ${
+              filterCategory === cat
+                ? "bg-cyan-500 text-slate-950 font-bold shadow-[0_0_12px_rgba(6,182,212,0.4)]"
+                : "bg-slate-800/70 hover:bg-slate-700 text-slate-400 hover:text-white"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* 10 Gestures Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {filtered.map(g => {
+          const isSelected = selectedDemoId === g.id;
+          return (
+            <div
+              key={g.id}
+              onClick={() => onSelectDemoGesture && onSelectDemoGesture(g)}
+              className={`cyber-card p-4 flex flex-col justify-between cursor-pointer transition-all hover:-translate-y-1 ${
+                isSelected ? "border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.4)] bg-cyan-950/20" : ""
+              } ${g.isEmergency ? "hover:border-red-500" : ""}`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-3xl">{g.icon}</span>
+                  <span
+                    className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full border uppercase"
+                    style={{
+                      color: g.color,
+                      borderColor: `${g.color}44`,
+                      background: `${g.color}15`
+                    }}
+                  >
+                    {g.category}
+                  </span>
+                </div>
+                <h4 className="font-tech text-base font-bold text-white mb-1" style={{ color: g.color }}>
+                  {g.name}
+                </h4>
+                <p className="text-xs text-slate-300 font-semibold mb-2">
+                  "{g.message}"
+                </p>
+                <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+                  {g.hint}
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                <span className="text-[10px] text-slate-500 font-mono">Min Conf: {Math.round(g.threshold * 100)}%</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    TTS.speak(g.message);
+                  }}
+                  className="p-1.5 hover:bg-cyan-500/20 text-cyan-400 rounded-md transition-colors"
+                  title="Hear pronunciation"
+                >
+                  🔊
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// MESSAGE HISTORY LOG COMPONENT
+// ============================================================================
+function HistoryPanel({ history, onClearHistory, onReplayMessage }) {
+  const exportHistory = () => {
+    if (history.length === 0) return;
+    const content = history.map(h => `[${new Date(h.timestamp).toLocaleTimeString()}] ${h.message} (${h.gestureName})`).join("\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `GestureSpeak-History-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="cyber-card p-5 space-y-4">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="flex items-center gap-2">
+          <span className="text-base">📜</span>
+          <h3 className="font-tech font-bold text-base text-white">Communication Timeline</h3>
+          <span className="text-xs text-slate-400 font-mono bg-slate-800 px-2 py-0.5 rounded-full">
+            {history.length}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {history.length > 0 && (
+            <>
+              <button
+                onClick={exportHistory}
+                className="text-xs text-slate-400 hover:text-cyan-400 px-2.5 py-1 bg-slate-800/60 rounded-md transition-colors"
+                title="Export history as text file"
+              >
+                ⬇ Export
+              </button>
+              <button
+                onClick={onClearHistory}
+                className="text-xs text-rose-400 hover:text-rose-300 px-2.5 py-1 bg-rose-500/10 rounded-md transition-colors"
+              >
+                Clear
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {history.length === 0 ? (
+        <div className="py-8 text-center text-slate-500 text-xs">
+          No translated messages recorded yet. Recognized gestures will appear here chronologically.
+        </div>
+      ) : (
+        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          {history.slice().reverse().map((item, idx) => (
+            <div
+              key={idx}
+              className="p-3 bg-slate-900/60 hover:bg-slate-850 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-slate-500 text-[11px]">
+                  {new Date(item.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                </span>
+                <div>
+                  <span className="font-bold text-white text-sm mr-2">"{item.message}"</span>
+                  <span className="text-cyan-400 text-[11px] font-mono">[{item.gestureName}]</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {item.isDemo && (
+                  <span className="text-[10px] font-mono bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded">
+                    DEMO
+                  </span>
+                )}
+                <button
+                  onClick={() => onReplayMessage(item.message)}
+                  className="p-1 hover:bg-cyan-500/20 text-cyan-400 rounded transition-colors"
+                  title="Replay Speech"
+                >
+                  🔊
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+// ============================================================================
+// ARCHITECTURE & ENGINEERING SPECIFICATION VIEW
+// ============================================================================
+function ArchitectureView() {
+  const pipelineSteps = [
+    {
+      step: 1,
+      title: "Real-World Capture",
+      desc: "Device webcam / mobile camera captures continuous RGB video stream at 30–60 FPS.",
+      dataFlow: "Raw video frames (640×480)",
+      tech: "HTML5 MediaDevices / OpenCV VideoCapture"
+    },
+    {
+      step: 2,
+      title: "Hand Landmark Extraction",
+      desc: "MediaPipe Hands uses an ML pipeline to detect hand bounding boxes and extract 21 high-precision 3D skeleton keypoints.",
+      dataFlow: "21 normalized 3D coordinates (x, y, z)",
+      tech: "MediaPipe Hands ML Graph / BlazePalm"
+    },
+    {
+      step: 3,
+      title: "Geometric Feature Vector",
+      desc: "Calculates Euclidean distances between fingertips, joint flex angles, and thumb spatial orientation vectors.",
+      dataFlow: "Finger extension states & distance matrix",
+      tech: "Vector Math & Joint Trigonometry"
+    },
+    {
+      step: 4,
+      title: "AI Gesture Classification",
+      desc: "Evaluates multi-point geometric constraints against 10 predefined everyday communication classes.",
+      dataFlow: "Candidate gesture ID + raw confidence",
+      tech: "Rule-based classifier (Modular ML interface)"
+    },
+    {
+      step: 5,
+      title: "Temporal Smoothing Buffer",
+      desc: "Maintains a sliding FIFO queue of the last 10 predictions, requiring >=70% temporal consistency to prevent flickering.",
+      dataFlow: "Debounced, stable gesture event",
+      tech: "Temporal Consistency Filter (10-frame queue)"
+    },
+    {
+      step: 6,
+      title: "Communication Translation & Voice",
+      desc: "Maps the confirmed gesture to an accessible sentence, displays it on screen, and triggers text-to-speech audio.",
+      dataFlow: "Synthesized audio waveform & UI update",
+      tech: "Web Speech API (SpeechSynthesis) + React"
+    }
+  ];
+
+  return (
+    <div className="space-y-8 max-w-5xl mx-auto py-4">
+      {/* Intro Header */}
+      <div className="text-center space-y-2">
+        <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-3 py-1 rounded-full uppercase tracking-wider">
+          System Architecture & Data Flow
+        </span>
+        <h2 className="font-tech text-3xl font-extrabold text-white">
+          End-to-End AI Engineering Pipeline
+        </h2>
+        <p className="text-slate-400 text-sm max-w-2xl mx-auto">
+          Detailed technical breakdown of how GestureSpeak AI transforms camera frames into vocalized human intent without external server dependencies.
+        </p>
+      </div>
+
+      {/* Block Diagram Cards */}
+      <div className="space-y-3">
+        {pipelineSteps.map((s, idx) => (
+          <div key={s.step} className="relative">
+            <div className="cyber-card p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-tech font-bold text-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                  0{s.step}
+                </div>
+                <div>
+                  <h4 className="font-tech font-bold text-base text-white flex items-center gap-2">
+                    {s.title}
+                    <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/20">
+                      {s.tech}
+                    </span>
+                  </h4>
+                  <p className="text-slate-400 text-xs mt-1 leading-relaxed max-w-2xl">
+                    {s.desc}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-2 text-right shrink-0 w-full md:w-auto">
+                <span className="text-[10px] text-slate-500 uppercase font-mono block">Data Interface</span>
+                <span className="text-xs font-semibold text-slate-300 font-mono">
+                  → {s.dataFlow}
+                </span>
+              </div>
+            </div>
+
+            {idx < pipelineSteps.length - 1 && (
+              <div className="flex justify-center my-1">
+                <div className="w-0.5 h-4 bg-cyan-500/30" />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Technical Specifications Matrix */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="cyber-card p-5 space-y-3">
+          <h4 className="font-tech font-bold text-white flex items-center gap-2">
+            <span>⚙️</span> Computer Vision & AI Layer
+          </h4>
+          <ul className="text-xs text-slate-400 space-y-2 leading-relaxed">
+            <li>• <strong className="text-slate-200">Framework:</strong> MediaPipe Hands + HTML5 Canvas overlay</li>
+            <li>• <strong className="text-slate-200">Backend Support:</strong> Python Flask + OpenCV (`cv2`) + `gesture_engine.py`</li>
+            <li>• <strong className="text-slate-200">Keypoints:</strong> 21 3D coordinates tracking wrist, MCP, PIP, DIP, and fingertips</li>
+            <li>• <strong className="text-slate-200">Sampling Rate:</strong> Adaptive 30–60 FPS with requestAnimationFrame</li>
+            <li>• <strong className="text-slate-200">Debouncing:</strong> 10-frame FIFO queue with 70% temporal agreement threshold</li>
+          </ul>
+        </div>
+
+        <div className="cyber-card p-5 space-y-3">
+          <h4 className="font-tech font-bold text-white flex items-center gap-2">
+            <span>🛡️</span> Responsible AI & Limitations Disclosure
+          </h4>
+          <ul className="text-xs text-slate-400 space-y-2 leading-relaxed">
+            <li>• <strong className="text-slate-200">Scope:</strong> Prototype for 10 everyday predefined communication gestures</li>
+            <li>• <strong className="text-slate-200">Sign Language Notice:</strong> Does not interpret arbitrary continuous sign languages</li>
+            <li>• <strong className="text-slate-200">Privacy Guarantee:</strong> All frame computation remains in browser memory</li>
+            <li>• <strong className="text-slate-200">Performance Factors:</strong> Ambient illumination, contrast, and distance from sensor</li>
+            <li>• <strong className="text-slate-200">Fail-Safe:</strong> Visual uncertainty alerts shown when confidence &lt; 75%</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// C29 PROJECT INFO & FIELD EVIDENCE PLACEHOLDERS VIEW
+// ============================================================================
+function ProjectInfoView() {
+  const [fieldNotes, setFieldNotes] = useState({
+    site: "",
+    userGroup: "",
+    problemObserved: "",
+    frequency: "",
+    magnitude: "",
+    reach: "",
+    stakeholder: ""
+  });
+
+  const updateField = (key, val) => {
+    setFieldNotes(prev => ({ ...prev, [key]: val }));
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto py-4">
+      <div className="text-center space-y-2">
+        <span className="text-xs font-mono font-bold text-teal-400 bg-teal-950/60 border border-teal-500/30 px-3 py-1 rounded-full uppercase tracking-wider">
+          AI Immersion C29 Project Deliverable
+        </span>
+        <h2 className="font-tech text-3xl font-extrabold text-white">
+          Project Information & Field Observation
+        </h2>
+        <p className="text-slate-400 text-sm max-w-xl mx-auto">
+          Academic documentation, design thinking workflow, and un-fabricated field study evaluation record.
+        </p>
+      </div>
+
+      {/* Problem & Solution Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="cyber-card p-5 space-y-2">
+          <div className="flex items-center gap-2 text-rose-400 font-tech font-bold text-sm">
+            <span>🔴</span> The Core Problem
+          </div>
+          <p className="text-slate-300 text-xs leading-relaxed">
+            Non-speaking individuals and patients with temporary speech loss face severe communication barriers in conveying essential daily needs (water, food, help, emergency, responses) to caregivers and family.
+          </p>
+        </div>
+
+        <div className="cyber-card p-5 space-y-2">
+          <div className="flex items-center gap-2 text-emerald-400 font-tech font-bold text-sm">
+            <span>🟢</span> The AI Solution
+          </div>
+          <p className="text-slate-300 text-xs leading-relaxed">
+            GestureSpeak AI provides an instantaneous, cost-free, webcam-based communication assistant using computer vision to convert 10 common hand gestures into spoken voice and large high-contrast text.
+          </p>
+        </div>
+      </div>
+
+      {/* Design Thinking Process */}
+      <div className="cyber-card p-5 space-y-3">
+        <h4 className="font-tech font-bold text-white text-sm">Human-Centered Design Workflow</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          {[
+            { step: "Empathize", desc: "Understand daily pain points of non-vocal communication", icon: "🤝" },
+            { step: "Define", desc: "Identify 10 high-frequency essential communication gestures", icon: "🎯" },
+            { step: "Ideate", desc: "Formulate geometric landmark classification rules", icon: "💡" },
+            { step: "Deliver", desc: "Build real-time responsive web & Python prototype", icon: "🚀" }
+          ].map(p => (
+            <div key={p.step} className="p-3 bg-slate-900/60 border border-slate-800 rounded-xl space-y-1">
+              <span className="text-2xl">{p.icon}</span>
+              <h5 className="font-tech font-bold text-cyan-400 text-xs">{p.step}</h5>
+              <p className="text-[11px] text-slate-400 leading-tight">{p.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Field Evidence Placeholders Section */}
+      <div className="cyber-card p-5 space-y-4 border-amber-500/30">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 text-base">📋</span>
+            <h4 className="font-tech font-bold text-white text-sm">Field Evidence Record</h4>
+          </div>
+          <span className="text-[11px] font-mono text-amber-400 bg-amber-950/60 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+            Placeholder Template (No Fabricated Data)
+          </span>
+        </div>
+
+        <p className="text-xs text-slate-400">
+          In strict compliance with academic standards, field study statistics and observations must be entered from genuine site visits and consented stakeholder interviews.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div>
+            <label className="text-slate-400 font-semibold block mb-1">Site / Institution Visited</label>
+            <input
+              type="text"
+              placeholder="[Enter actual hospital / rehabilitation center / home location]"
+              value={fieldNotes.site}
+              onChange={(e) => updateField("site", e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 text-slate-200 rounded-lg p-2 text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="text-slate-400 font-semibold block mb-1">Observed User Cohort</label>
+            <input
+              type="text"
+              placeholder="[Enter user demographics e.g. post-stroke patients, ICU patients]"
+              value={fieldNotes.userGroup}
+              onChange={(e) => updateField("userGroup", e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 text-slate-200 rounded-lg p-2 text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="text-slate-400 font-semibold block mb-1">Observed Communication Difficulty</label>
+            <input
+              type="text"
+              placeholder="[Enter specific observed challenge during field trial]"
+              value={fieldNotes.problemObserved}
+              onChange={(e) => updateField("problemObserved", e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 text-slate-200 rounded-lg p-2 text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="text-slate-400 font-semibold block mb-1">Observation Frequency & Reach</label>
+            <input
+              type="text"
+              placeholder="[Enter recorded frequency and sample size of observation]"
+              value={fieldNotes.frequency}
+              onChange={(e) => updateField("frequency", e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 text-slate-200 rounded-lg p-2 text-xs"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// MAIN APPLICATION COMPONENT
+// ============================================================================
+function App() {
+  const [activeTab, setActiveTab] = useState("translator"); // translator | guide | architecture | project
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [selectedDemoId, setSelectedDemoId] = useState(null);
+
+  const [recognized, setRecognized] = useState(null);
+  const [autoSpeak, setAutoSpeak] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [history, setHistory] = useState([]);
+
+  // Accessibility & Theme States
+  const [theme, setTheme] = useState("dark");
+  const [fontScale, setFontScale] = useState("md"); // xs | sm | md | lg | xl
+
+  // Speech Settings
+  const [speechSettings, setSpeechSettings] = useState({
+    rate: 1.0,
+    pitch: 1.0,
+    volume: 1.0,
+    voiceURI: ""
+  });
+
+  const smootherRef = useRef(new TemporalSmoother(10, 0.7));
+  const lastSpokenGestureRef = useRef(null);
+
+  // Apply Theme & Font Scale to Root
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const scaleMap = { xs: "14px", sm: "15px", md: "16px", lg: "18px", xl: "20px" };
+    document.documentElement.style.fontSize = scaleMap[fontScale] || "16px";
+  }, [fontScale]);
+
+  // Handle Real-Time Landmarks from Camera
+  const handleCameraResults = useCallback((landmarks, handCount) => {
+    if (handCount === 0) {
+      smootherRef.current.reset();
+      setRecognized(prev => (prev?.confidence >= 0.75 ? prev : null));
+      return;
+    }
+    if (handCount > 1) {
+      return;
+    }
+
+    const raw = classifyHandPose(landmarks);
+    const stable = smootherRef.current.push(raw);
+
+    if (stable && stable.id !== "UNKNOWN") {
+      const gDef = GESTURES_DATA.find(g => g.id === stable.id);
+      const newResult = {
+        id: stable.id,
+        confidence: stable.confidence,
+        timestamp: Date.now()
+      };
+      setRecognized(newResult);
+
+      // Auto Speak Check
+      if (stable.confidence >= (gDef?.threshold || 0.75)) {
+        if (autoSpeak && lastSpokenGestureRef.current !== stable.id) {
+          lastSpokenGestureRef.current = stable.id;
+          speakText(gDef?.message || stable.id);
+          addHistory(stable.id, gDef?.message || stable.id, false);
+        }
+      }
+    } else if (raw.id !== "UNKNOWN") {
+      setRecognized({ id: raw.id, confidence: raw.confidence, timestamp: Date.now() });
+    }
+  }, [autoSpeak, speechSettings]);
+
+  // Handle Demo Mode Selection
+  const handleSelectDemoGesture = (gesture) => {
+    setSelectedDemoId(gesture.id);
+    setIsDemoMode(true);
+    setRecognized({
+      id: gesture.id,
+      confidence: gesture.demoConfidence / 100,
+      timestamp: Date.now()
+    });
+
+    if (autoSpeak) {
+      speakText(gesture.message);
+    }
+    addHistory(gesture.id, gesture.message, true);
+  };
+
+  const speakText = (text) => {
+    if (!TTS.isSupported || !text) return;
+    setIsSpeaking(true);
+    TTS.speak(
+      text,
+      speechSettings,
+      () => setIsSpeaking(true),
+      () => setIsSpeaking(false)
+    );
+  };
+
+  const addHistory = (gestureId, message, isDemo) => {
+    const gDef = GESTURES_DATA.find(g => g.id === gestureId);
+    setHistory(prev => [
+      ...prev,
+      {
+        gestureId,
+        gestureName: gDef?.name || gestureId,
+        message,
+        timestamp: Date.now(),
+        isDemo
+      }
+    ]);
+  };
+
+  const handleManualSpeak = () => {
+    const gDef = GESTURES_DATA.find(g => g.id === recognized?.id);
+    if (gDef?.message) {
+      speakText(gDef.message);
+    }
+  };
+
+  const handleCopyMessage = async () => {
+    const gDef = GESTURES_DATA.find(g => g.id === recognized?.id);
+    if (!gDef?.message) return;
+    try {
+      await navigator.clipboard.writeText(gDef.message);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = gDef.message;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleClear = () => {
+    setRecognized(null);
+    setSelectedDemoId(null);
+    smootherRef.current.reset();
+    lastSpokenGestureRef.current = null;
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {/* ================= HEADER NAVBAR ================= */}
+      <header className="sticky top-0 z-40 bg-[#070b14]/90 backdrop-blur-xl border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          {/* Brand Logo */}
+          <div
+            onClick={() => setActiveTab("translator")}
+            className="flex items-center gap-3 cursor-pointer select-none"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center text-slate-950 font-bold text-xl shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+              ✋
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-tech text-lg font-extrabold tracking-tight text-white">
+                  GestureSpeak<span className="text-cyan-400"> AI</span>
+                </span>
+                <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 hidden sm:inline-block">
+                  10 GESTURES
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 hidden sm:block">AI-Based Hand Gesture Communication System</p>
+            </div>
+          </div>
+
+          {/* Nav Tabs */}
+          <nav className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+            {[
+              { id: "translator", label: "Live Translator", icon: "📷" },
+              { id: "guide", label: "Gesture Guide", icon: "📖" },
+              { id: "architecture", label: "Architecture", icon: "⚙️" },
+              { id: "project", label: "Project Info", icon: "ℹ️" }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+                  activeTab === tab.id
+                    ? "bg-cyan-500 text-slate-950 font-bold shadow-[0_0_12px_rgba(6,182,212,0.4)]"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span className="hidden md:inline">{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          {/* Accessibility Controls Toolbar */}
+          <div className="flex items-center gap-2">
+            {/* Font Scaling Buttons */}
+            <div className="hidden lg:flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1">
+              {["xs", "sm", "md", "lg", "xl"].map((fs, idx) => (
+                <button
+                  key={fs}
+                  onClick={() => setFontScale(fs)}
+                  className={`px-2 py-0.5 rounded text-xs font-bold transition-colors ${
+                    fontScale === fs ? "bg-cyan-500 text-slate-950" : "text-slate-400 hover:text-white"
+                  }`}
+                  title={`Font size ${fs.toUpperCase()}`}
+                >
+                  {["A-", "A", "A", "A+", "A++"][idx]}
+                </button>
+              ))}
+            </div>
+
+            {/* Theme Selector */}
+            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1 text-xs">
+              {[
+                { id: "dark", label: "🌙" },
+                { id: "light", label: "☀️" },
+                { id: "high-contrast", label: "◐" }
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setTheme(t.id)}
+                  className={`px-2 py-1 rounded transition-colors ${
+                    theme === t.id ? "bg-slate-800 text-cyan-400 font-bold" : "text-slate-400 hover:text-white"
+                  }`}
+                  title={`${t.id} theme`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* ================= MAIN CONTENT BODY ================= */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {activeTab === "translator" && (
+          <div className="space-y-6">
+            {/* Mode Switcher Banner */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900/60 border border-slate-800 rounded-2xl">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-tech font-bold text-white">Recognition Engine:</span>
+                <span className="text-xs text-slate-400">
+                  {isDemoMode ? "Interactive Simulation Mode" : "MediaPipe Live Webcam Tracker"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setIsDemoMode(false);
+                    setRecognized(null);
+                    setSelectedDemoId(null);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                    !isDemoMode
+                      ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <span>📷</span> Camera Mode
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsDemoMode(true);
+                    setRecognized(null);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                    isDemoMode
+                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <span>🎭</span> Demo Mode
+                </button>
+              </div>
+            </div>
+
+            {/* Split Screen Layout: Left Viewport | Right Output */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Column (Webcam or Demo Selection) */}
+              <div className="lg:col-span-7 space-y-4">
+                {isDemoMode ? (
+                  <div className="cyber-card p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-tech text-base font-bold text-white">Simulation Gesture Selector</h3>
+                        <p className="text-slate-400 text-xs">Select any predefined hand pose to test translation & speech</p>
+                      </div>
+                      <span className="text-xs font-mono text-amber-400 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded">
+                        10 Poses
+                      </span>
+                    </div>
+                    <GestureGuide onSelectDemoGesture={handleSelectDemoGesture} selectedDemoId={selectedDemoId} />
+                  </div>
+                ) : (
+                  <CameraPanel
+                    onResults={handleCameraResults}
+                    cameraActive={cameraActive}
+                    setCameraActive={setCameraActive}
+                    cameraError={cameraError}
+                    setCameraError={setCameraError}
+                  />
+                )}
+              </div>
+
+              {/* Right Column (Live Communication Display & History) */}
+              <div className="lg:col-span-5 space-y-4">
+                <OutputPanel
+                  recognized={recognized}
+                  isDemoMode={isDemoMode}
+                  autoSpeak={autoSpeak}
+                  setAutoSpeak={setAutoSpeak}
+                  onSpeak={handleManualSpeak}
+                  onCopy={handleCopyMessage}
+                  onClear={handleClear}
+                  copied={copied}
+                  isSpeaking={isSpeaking}
+                  speechSettings={speechSettings}
+                  setSpeechSettings={setSpeechSettings}
+                  ttsSupported={TTS.isSupported}
+                />
+
+                <HistoryPanel
+                  history={history}
+                  onClearHistory={() => setHistory([])}
+                  onReplayMessage={(msg) => speakText(msg)}
+                />
+              </div>
+            </div>
+
+            {/* Quick Gesture Visual Guide Bottom Bar */}
+            {!isDemoMode && (
+              <div className="cyber-card p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-tech text-sm font-bold text-white flex items-center gap-2">
+                    <span>📖</span> Quick Predefined Gestures Guide (10 Classes)
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab("guide")}
+                    className="text-xs font-semibold text-cyan-400 hover:text-cyan-300"
+                  >
+                    View Complete Guide →
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                  {GESTURES_DATA.map(g => (
+                    <div
+                      key={g.id}
+                      className="p-2.5 bg-slate-900/60 rounded-xl border border-slate-800 flex items-center gap-2 text-xs"
+                    >
+                      <span className="text-2xl">{g.icon}</span>
+                      <div className="overflow-hidden">
+                        <strong className="block truncate text-white" style={{ color: g.color }}>
+                          {g.name}
+                        </strong>
+                        <span className="text-[11px] text-slate-400 truncate block">
+                          "{g.message}"
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "guide" && (
+          <div className="space-y-4">
+            <div className="text-center space-y-1 py-2">
+              <h2 className="font-tech text-2xl font-extrabold text-white">
+                Predefined Gesture Catalog (10 Classes)
+              </h2>
+              <p className="text-slate-400 text-xs max-w-xl mx-auto">
+                Comprehensive dictionary of all recognized everyday physical hand poses, trigger rules, and voice translations.
+              </p>
+            </div>
+            <GestureGuide onSelectDemoGesture={handleSelectDemoGesture} selectedDemoId={selectedDemoId} />
+          </div>
+        )}
+
+        {activeTab === "architecture" && <ArchitectureView />}
+
+        {activeTab === "project" && <ProjectInfoView />}
+      </main>
+
+      {/* ================= FOOTER ================= */}
+      <footer className="bg-[#05080f] border-t border-slate-800/80 py-6 text-xs text-slate-400 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-tech font-bold text-white">GestureSpeak AI</span>
+            <span>—</span>
+            <span>AI Immersion C29 Engineering Prototype</span>
+          </div>
+          <div className="text-center sm:text-right text-slate-500">
+            Client-side MediaPipe + OpenCV Python Engine · Not an arbitrary sign-language interpreter
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// Bootstrap React Root
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
+</script>
+</body>
+</html>
