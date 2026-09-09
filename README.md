@@ -99,10 +99,6 @@ Text Message
       ↓
 Optional Web Speech API
 
-## Project Preview
-
-![GestureSpeak AI](Screenshot.png)
-
 ## 📸 Project Evidence
 
 ### Working Prototype
