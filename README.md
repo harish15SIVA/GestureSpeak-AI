@@ -460,7 +460,7 @@ GestureSpeak-AI/
 
 The repository includes a screenshot of the live GestureSpeak AI interface.
 
-![GestureSpeak AI]\(Screenshot.png)
+![GestureSpeak AI](Screenshot.png)
 
 ---
 
