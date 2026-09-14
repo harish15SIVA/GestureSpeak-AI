@@ -454,11 +454,15 @@ GestureSpeak-AI/
 
 ---
 
-# 📸 Project Evidence
+## 📸 Project Evidence
 
-## Working Prototype
+### Working Prototype
 
-[GestureSpeak AI](Screenshot.png)
+The repository includes a screenshot of the live GestureSpeak AI interface.
+
+![GestureSpeak AI]\(Screenshot.png)
+
+---
 
 ## Demonstrated Workflow
 
