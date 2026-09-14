@@ -525,7 +525,7 @@ Current measured performance:
 
 ## Live Webcam Testing
 
-The application is tested through real-time webcam interaction under practical conditions including:
+The application is tested through real-time webcam interaction under practical conditions including :
 
 -  Different hand positions
 -  Different distances from the camera
