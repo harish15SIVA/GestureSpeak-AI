@@ -1,4 +1,29 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+
+# Virtual environment
 .venv/
-.env
+venv/
+env/
+
+# VS Code
+.vscode/
+
+# Python cache
+.pytest_cache/
+
+# Generated ML files
+landmarks.csv
+gesture_model.pkl
+
+# Dataset images
+dataset/
+
+# Backup / old files
+gesture_classifier_old.py
+
+# OS files
+Thumbs.db
+.DS_Store
