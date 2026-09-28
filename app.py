@@ -45,7 +45,7 @@ if HAS_MEDIAPIPE:
 
 @app.route("/")
 def index():
-    return send_from_directory("templates", "index.html")
+    return send_from_directory("templates", "GestureSpeak_AI_Professional.html")
 
 @app.route("/api/health")
 def health():

@@ -12,9 +12,9 @@
   <!-- Babel 7 Standalone -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.4/babel.min.js"></script>
   <!-- MediaPipe Hands & Camera Utils -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466124/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
   <!-- Google Fonts: Space Grotesk & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -763,8 +763,9 @@ function CameraPanel({
       }
 
       const hands = new window.Hands({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-      });
+  locateFile: (file) =>
+    `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`
+});
 
       hands.setOptions({
         maxNumHands: 2,
@@ -775,14 +776,7 @@ function CameraPanel({
 
       hands.onResults(onMediaPipeResults);
 
-      try {
-        await Promise.race([
-          hands.initialize(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("init-timeout")), 4000))
-        ]);
-      } catch (e) {
-        console.log("MediaPipe background warmup will continue on first frame:", e);
-      }
+
       handsRef.current = hands;
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -803,7 +797,7 @@ function CameraPanel({
           try {
             await handsRef.current.send({ image: videoRef.current });
           } catch (e) {
-            // Frame skips are normal
+            console.error("MediaPipe frame processing error:", e);
           } finally {
             isProcessingFrame = false;
           }
